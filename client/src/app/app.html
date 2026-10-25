@@ -1,0 +1,162 @@
+<main class="app-shell">
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Noughts and Crosses home">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      <span>little <strong>XO</strong></span>
+    </a>
+    <span class="session-tag"><span class="live-dot"></span> LOCAL SESSION</span>
+  </header>
+
+  <section class="game-layout" aria-label="Tic-Tac-Toe game">
+    <section class="play-panel">
+      <div class="eyebrow"><span>THE CLASSIC, REIMAGINED</span><span class="eyebrow-line"></span></div>
+      <div class="heading-row">
+        <div>
+          <h1>Make your<br /><span>move.</span></h1>
+          <p class="intro">A little friendly competition goes a long way.</p>
+        </div>
+        <div class="round-stamp" aria-hidden="true"><span>ROUND</span><strong>01</strong><span>— XO —</span></div>
+      </div>
+
+      <div class="mode-switch" role="group" aria-label="Game mode">
+        <button type="button" [class.selected]="mode() === 'twoPlayer'" [attr.aria-pressed]="mode() === 'twoPlayer'"
+          [disabled]="busy()" (click)="selectMode('twoPlayer')">
+          <span class="mode-icon">↗</span> Two players
+        </button>
+        <button type="button" [class.selected]="mode() === 'computer'" [attr.aria-pressed]="mode() === 'computer'"
+          [disabled]="busy()" (click)="selectMode('computer')">
+          <span class="mode-icon">✳</span> Play computer
+        </button>
+      </div>
+
+      @if (game(); as currentGame) {
+        <div class="game-status" [class.game-over]="currentGame.status !== 'inProgress'" aria-live="polite">
+          <span class="turn-token" [class.token-x]="currentGame.currentPlayer === 'X'"
+            [class.token-o]="currentGame.currentPlayer === 'O'">
+            @if (currentGame.status === 'won') {
+              {{ currentGame.winner }}
+            } @else if (currentGame.status === 'draw') {
+              =
+            } @else {
+              {{ currentGame.currentPlayer }}
+            }
+          </span>
+          <div class="status-copy">
+            <strong>{{ statusText(currentGame) }}</strong>
+            <span>
+              @if (currentGame.status === 'inProgress') {
+                {{ currentGame.currentPlayer === 'X' ? 'A little strategy, a lot of fun.' : 'Your turn is up next.' }}
+              } @else if (currentGame.status === 'won') {
+                Nicely played. Ready for a rematch?
+              } @else {
+                No winner this time. Run it back?
+              }
+            </span>
+          </div>
+          <span class="status-indicator" [class.is-done]="currentGame.status !== 'inProgress'"></span>
+        </div>
+
+        <div class="board" role="group" aria-label="Tic-Tac-Toe board">
+          @for (cell of currentGame.board; track $index; let index = $index) {
+            <button type="button" class="cell" [class.cell-x]="cell === 'X'" [class.cell-o]="cell === 'O'"
+              [class.winning]="currentGame.winningCells.includes(index)"
+              [disabled]="busy() || currentGame.status !== 'inProgress' || cell !== null"
+              [attr.aria-label]="cellLabel(index)" [attr.aria-pressed]="cell !== null"
+              (click)="play(index)">
+              @if (cell === 'X') {
+                <span class="mark mark-x" aria-hidden="true">×</span>
+              } @else if (cell === 'O') {
+                <span class="mark mark-o" aria-hidden="true"></span>
+              } @else {
+                <span class="cell-number" aria-hidden="true">{{ index + 1 }}</span>
+              }
+            </button>
+          }
+        </div>
+
+        <div class="game-actions">
+          <button type="button" class="text-action" [disabled]="busy() || currentGame.moves.length === 0" (click)="undo()">
+            <span aria-hidden="true">↶</span> Undo last move
+          </button>
+          <button type="button" class="primary-action" [disabled]="busy()" (click)="resetGame()">
+            New game <span aria-hidden="true">↗</span>
+          </button>
+        </div>
+      } @else {
+        @if (errorMessage()) {
+          <div class="loading-board load-error" role="status">
+            <div>
+              <strong>Game server unavailable</strong>
+              <span>Start the .NET API, then try connecting again.</span>
+              <button type="button" [disabled]="busy()" (click)="startGame()">Try again <span aria-hidden="true">↗</span></button>
+            </div>
+          </div>
+        } @else {
+          <div class="loading-board" aria-live="polite">
+            <span class="loading-dot"></span> Setting up your board…
+          </div>
+        }
+      }
+    </section>
+
+    <aside class="side-panel">
+      <section class="score-card" aria-labelledby="score-heading">
+        <div class="card-heading">
+          <div><span class="section-kicker">THE SCORE SO FAR</span><h2 id="score-heading">Scoreboard</h2></div>
+          <span class="trophy" aria-hidden="true">✳</span>
+        </div>
+        <div class="score-grid">
+          <div class="score-item">
+            <span class="score-symbol score-x">×</span><span class="score-label">X WINS</span>
+            <strong>{{ scoreboard().xWins }}</strong>
+          </div>
+          <div class="score-item">
+            <span class="score-symbol score-o"></span><span class="score-label">O WINS</span>
+            <strong>{{ scoreboard().oWins }}</strong>
+          </div>
+          <div class="score-item">
+            <span class="score-symbol score-draw">=</span><span class="score-label">DRAWS</span>
+            <strong>{{ scoreboard().draws }}</strong>
+          </div>
+        </div>
+        <button type="button" class="reset-score" [disabled]="busy()" (click)="resetScoreboard()">Reset scoreboard <span aria-hidden="true">↗</span></button>
+      </section>
+
+      <section class="history-card" aria-labelledby="history-heading">
+        <div class="card-heading history-title">
+          <div><span class="section-kicker">EVERY MOVE COUNTS</span><h2 id="history-heading">Move history</h2></div>
+          @if (game(); as currentGame) {
+            <span class="move-count">{{ currentGame.moves.length }} MOVES</span>
+          }
+        </div>
+        @if (game(); as currentGame) {
+          @if (currentGame.moves.length > 0) {
+            <ol class="history-list" aria-live="polite">
+              @for (move of currentGame.moves; track trackMove($index, move)) {
+                <li class="history-entry">
+                  <span class="move-number">{{ move.moveNumber.toString().padStart(2, '0') }}</span>
+                  <span class="history-player" [class.score-x]="move.player === 'X'" [class.score-o]="move.player === 'O'">{{ move.player }}</span>
+                  <span class="move-description">{{ playerName(move.player) }}<small>Row {{ move.row }}, column {{ move.column }}</small></span>
+                  @if (mode() === 'computer' && move.player === 'O') {
+                    <span class="computer-tag">CPU</span>
+                  }
+                </li>
+              }
+            </ol>
+          } @else {
+            <div class="empty-history"><span class="empty-doodle" aria-hidden="true">× <i></i></span><p>Your first move is waiting.</p><span>Pick any square to get started.</span></div>
+          }
+        }
+        <div class="history-footer"><span class="live-dot"></span> MOVES ARE SAVED FOR THIS SESSION</div>
+      </section>
+
+      <div class="tip-card"><span class="tip-star" aria-hidden="true">✳</span><p><strong>A little tip</strong><br />The center square is popular for a reason.</p></div>
+    </aside>
+  </section>
+
+  @if (errorMessage() && game()) {
+    <div class="error-banner" role="alert">{{ errorMessage() }}</div>
+  }
+
+  <footer class="page-footer"><span>GOOD GAMES, GOOD COMPANY.</span><span>MADE FOR YOUR NEXT “ONE MORE ROUND.”</span></footer>
+</main>
