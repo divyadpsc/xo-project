@@ -7,7 +7,8 @@ A browser-based Tic-Tac-Toe game built with Angular and a .NET 10 REST API. The 
 - `client/` — Angular and TypeScript frontend source, styles, and frontend tests.
 - `server/TicTacToe.Api/` — .NET 10 minimal API and in-memory game logic.
 - `INTERVIEW_GUIDE.md` — code walkthrough and interview preparation notes.
-- This README — setup, test, API, AI workflow, and assumptions/limitations.
+- `AI_WORKFLOW.md` — AI assistance disclosure, engineering decisions, validation, known limitations, and interview discussion points.
+- This README — setup, run, test, and API instructions.
 
 ## Requirements
 
@@ -94,14 +95,7 @@ The create and move responses should show the game state and the computer's repl
 
 ## AI workflow notes
 
-AI assistance was used as a development aid to scaffold the Angular app, draft the UI and REST wiring, implement the in-memory game/session rules, and prepare the interview guide and documentation. The implementation was then reviewed against the problem statement and checked with the Angular production build, frontend tests, .NET build, and a live API smoke test covering game creation, a computer reply, undo, and scoreboard retrieval.
-
-The core design choices reflected in the code are:
-
-- Keep authoritative game rules and scoreboard updates on the API; let Angular render returned state.
-- Use a singleton in-memory store to satisfy the brief without adding database setup.
-- Represent supported players, game modes, and game statuses as explicit TypeScript types.
-- Keep the computer strategy simple and follow the priority specified in the problem statement.
+See [AI_WORKFLOW.md](AI_WORKFLOW.md) for the AI assistance disclosure, validation summary, engineering decisions, assumptions, known limitations, further testing recommendations, and interview discussion points.
 
 ## Assumptions and limitations
 
